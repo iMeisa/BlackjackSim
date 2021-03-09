@@ -12,7 +12,7 @@ import (
 
 // Config
 // Dev
-var debug = true
+var debug = false
 var cycles = 1000
 
 // Game
@@ -257,7 +257,9 @@ func main() {
 			}
 		}
 
-		fmt.Printf("\n%v\n%v\n", dealer, player)
+		if debug {
+			fmt.Printf("\n%v\n%v\n", dealer, player)
+		}
 		if dealer.value > 21 {
 			if debug {
 				fmt.Print("Dealer Bust!\n")
