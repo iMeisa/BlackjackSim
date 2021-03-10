@@ -8,18 +8,19 @@ import (
 )
 
 // TODO Implement basic strategy
-// TODO Implement betting
 
 // Config
 // Dev
-var debug = false
+var debug = true
 var cycles = 1000
+var baseBet = 10
 
 // Game
 var deckCount = 6
 var shuffleAt = 5 // How many decks are played
 var account = 1000
 
+const blackjackMultiplier = 1.5
 const deckSize = 52
 
 /*
@@ -33,7 +34,7 @@ const (
 	split = "Split!"
 )
 
-func playerDecide(dealerUpCard string, hand Hand) string {
+func playerDecide(dealerUpCard string, hand Hand, firstHit bool) string {
 	var value = hand.value
 
 	if hand.hand[0] == hand.hand[1] {
@@ -45,7 +46,7 @@ func playerDecide(dealerUpCard string, hand Hand) string {
 	if value >= 12 {
 		return hit
 	}
-	if value >= 9 {
+	if value >= 9 && firstHit {
 		return dd
 	}
 	return hit
@@ -61,12 +62,6 @@ func dealerDecide(value int) string {
 /***********
 	Game
  **********/
-
-// Random functions
-func wait(seconds float32) {
-	waitTime := seconds * 1e9
-	time.Sleep(time.Duration(waitTime))
-}
 
 // Deck config
 type Stack struct {
@@ -133,8 +128,8 @@ func (player *Player) addHand(hand Hand) []Hand {
 
 func main() {
 	fmt.Println("Hello World!")
-	if debug {
-		wait(1)
+	if !debug {
+		fmt.Print("Progress: [")
 	}
 
 	bj := Stack{
@@ -156,8 +151,12 @@ func main() {
 		dealer.value = calculateHand(dealer.hand)
 
 		player := Player{
-			hands: []Hand{
-				{hand: []string{bj.shoe[currentIndex+2], bj.shoe[currentIndex+3]}},
+			hands: []Hand{{
+				hand: []string{
+					bj.shoe[currentIndex+2], bj.shoe[currentIndex+3],
+				},
+				bet: baseBet,
+			},
 			},
 		}
 		player.hands[0].value = calculateHand(player.hands[0].hand)
@@ -166,9 +165,11 @@ func main() {
 
 		// Check if blackjack
 		if dealer.value == 21 && player.hands[0].value != 21 {
+			account -= player.hands[0].bet
 			if debug {
 				fmt.Printf("\n%v\n%v\n", dealer, player)
 				fmt.Println("Dealer Blackjack!")
+				fmt.Println(account)
 			}
 			continue
 		} else if dealer.value == 21 && player.hands[0].value == 21 {
@@ -178,9 +179,12 @@ func main() {
 			}
 			continue
 		} else if player.hands[0].value == 21 {
+			account += int(float32(player.hands[0].bet) * blackjackMultiplier)
+			wins++
 			if debug {
 				fmt.Printf("\n%v\n%v\n", dealer, player)
 				fmt.Println("Blackjack!")
+				fmt.Println(account)
 			}
 			continue
 		}
@@ -189,17 +193,11 @@ func main() {
 		var totalBusts int
 		for index := 0; index < len(player.hands); index++ {
 			hand := player.hands[index]
+			firstHit := true
 		PlayerDeal:
 			for hand.value < 21 {
-				if hand.value == 21 && len(hand.hand) == 2 {
-					if debug {
-						fmt.Printf("\n%v\n%v\n", dealer, player)
-						fmt.Println("Blackjack!")
-					}
-					break
-				}
 
-				choice := playerDecide(dealer.hand[1], hand)
+				choice := playerDecide(dealer.hand[1], hand, firstHit)
 				switch choice {
 				case stand:
 					player.hands[index] = hand
@@ -212,6 +210,7 @@ func main() {
 					hand.hand = append(hand.hand, bj.shoe[currentIndex])
 					currentIndex++
 					hand.value = calculateHand(hand.hand)
+					hand.bet *= 2
 					player.hands[index] = hand
 					break PlayerDeal
 				case split:
@@ -220,6 +219,7 @@ func main() {
 							hand.hand[1],
 							bj.shoe[currentIndex],
 						},
+						bet: hand.bet,
 					}
 					currentIndex++
 					newHand.value = calculateHand(newHand.hand)
@@ -228,32 +228,62 @@ func main() {
 					hand.hand = []string{hand.hand[0], bj.shoe[currentIndex]}
 					currentIndex++
 					hand.value = calculateHand(hand.hand)
+
+					// If blackjack after split
+					if hand.value == 21 {
+						account += int(float32(hand.bet) * blackjackMultiplier)
+						wins++
+						if debug {
+							fmt.Printf("\n%v\n%v\n", dealer, player)
+							fmt.Println("Blackjack!")
+							fmt.Println(account)
+						}
+						break PlayerDeal
+					}
+
+					// If blackjack after split
+					if newHand.value == 21 {
+						account += int(float32(newHand.bet) * blackjackMultiplier)
+						wins++
+						if debug {
+							fmt.Printf("\n%v\n%v\n", dealer, player)
+							fmt.Println("Blackjack!")
+							fmt.Println(account)
+						}
+					}
+					continue
 				}
 
 				if hand.value > 21 {
 					totalBusts++
+					account -= hand.bet
 				}
 
 				player.hands[index] = hand
+				firstHit = false
 			}
 		}
 
 		if totalBusts == len(player.hands) {
+			if debug {
+				fmt.Printf("\n%v\n%v\n", dealer, player)
+				fmt.Println("Complete Bust!")
+				fmt.Println(account)
+			}
 			player.bust = true
+			continue
 		}
 
-		if !player.bust {
-		DealerDeal:
-			for dealer.value < 21 {
-				choice := dealerDecide(dealer.value)
-				switch choice {
-				case stand:
-					break DealerDeal
-				case hit:
-					dealer.hand = append(dealer.hand, bj.shoe[currentIndex])
-					currentIndex++
-					dealer.value = calculateHand(dealer.hand)
-				}
+	DealerDeal:
+		for dealer.value < 21 {
+			choice := dealerDecide(dealer.value)
+			switch choice {
+			case stand:
+				break DealerDeal
+			case hit:
+				dealer.hand = append(dealer.hand, bj.shoe[currentIndex])
+				currentIndex++
+				dealer.value = calculateHand(dealer.hand)
 			}
 		}
 
@@ -266,6 +296,7 @@ func main() {
 			}
 			for _, hand := range player.hands {
 				if hand.value <= 21 {
+					account += hand.bet
 					wins++
 				}
 			}
@@ -273,7 +304,8 @@ func main() {
 			for _, hand := range player.hands {
 				if hand.value == 21 && len(hand.hand) == 2 {
 					continue
-				} else if hand.value > 21 {
+				}
+				if hand.value > 21 {
 					if debug {
 						fmt.Println("Bust!")
 					}
@@ -281,6 +313,7 @@ func main() {
 					if debug {
 						fmt.Println("Win!")
 					}
+					account += hand.bet
 					wins++
 				} else if dealer.value == hand.value {
 					if debug {
@@ -290,15 +323,26 @@ func main() {
 					if debug {
 						fmt.Println("Dealer Win!")
 					}
+					account -= hand.bet
 				}
 			}
+		}
+
+		if debug {
+			fmt.Println(account)
 		}
 
 		if currentIndex > (shuffleAt * deckSize) {
 			bj.shuffleShoe()
 			currentIndex = 0
 		}
+
+		// Print progress bar
+		if i%(cycles/50) == 0 && !debug {
+			fmt.Print("#")
+		}
 	}
 
-	fmt.Printf("\nTotal Wins: %v", wins)
+	fmt.Printf("]\n\nTotal Wins: %v\n", wins)
+	fmt.Printf("Net: %v\n", account-1000)
 }
