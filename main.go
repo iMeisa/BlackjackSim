@@ -233,11 +233,7 @@ func main() {
 					if hand.value == 21 {
 						account += int(float32(hand.bet) * blackjackMultiplier)
 						wins++
-						if debug {
-							fmt.Printf("\n%v\n%v\n", dealer, player)
-							fmt.Println("Blackjack!")
-							fmt.Println(account)
-						}
+						player.hands[index] = hand
 						break PlayerDeal
 					}
 
@@ -245,11 +241,8 @@ func main() {
 					if newHand.value == 21 {
 						account += int(float32(newHand.bet) * blackjackMultiplier)
 						wins++
-						if debug {
-							fmt.Printf("\n%v\n%v\n", dealer, player)
-							fmt.Println("Blackjack!")
-							fmt.Println(account)
-						}
+						player.hands[index] = hand
+						break PlayerDeal
 					}
 					continue
 				}
@@ -303,6 +296,7 @@ func main() {
 		} else {
 			for _, hand := range player.hands {
 				if hand.value == 21 && len(hand.hand) == 2 {
+					fmt.Println("Blackjack!")
 					continue
 				}
 				if hand.value > 21 {
@@ -343,6 +337,9 @@ func main() {
 		}
 	}
 
-	fmt.Printf("]\n\nTotal Wins: %v\n", wins)
+	if !debug {
+		fmt.Println("]")
+	}
+	fmt.Printf("\nTotal Wins: %v\n", wins)
 	fmt.Printf("Net: %v\n", account-1000)
 }
