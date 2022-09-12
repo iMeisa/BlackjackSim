@@ -1,15 +1,18 @@
 package models
 
+import "BlackjackSim/cards"
+
 type Hand struct {
-	Cards []Card
+	Cards  []cards.Card
+	UpCard cards.Card // Dealer only
 }
 
 func (h *Hand) Calculate() int {
 	var totalValue int
 	var aces = 0
 	for _, card := range h.Cards {
-		switch card.Name {
-		case "A":
+		switch card {
+		case cards.Ace:
 			aces++
 		default:
 			totalValue += card.Value

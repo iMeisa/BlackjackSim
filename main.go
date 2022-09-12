@@ -1,8 +1,9 @@
 package main
 
 import (
+	"BlackjackSim/cards"
 	"BlackjackSim/models"
-	"fmt"
+	"github.com/schollz/progressbar/v3"
 )
 
 // TODO Implement basic strategy
@@ -33,20 +34,79 @@ func main() {
 
 	shoe := models.NewShoe(deckCount)
 
-	for _, card := range shoe.Cards {
-		fmt.Print(card.Name + " ")
-	}
-	fmt.Println("\n", len(shoe.Cards))
-
-	//bar := progressbar.Default(int64(cycles))
-
-	//for i := 0; i < cycles; i++ {
-	//	err := bar.Add(1)
-	//	if err != nil {
-	//		log.Println(err)
-	//		return
-	//	}
-	//
-	//	time.Sleep(100 * time.Millisecond)
+	//for _, card := range house.Cards {
+	//	fmt.Print(card.Name, " ")
 	//}
+	//fmt.Println(house.Calculate())
+	//
+	//for _, card := range player.Hands[0].Cards {
+	//	fmt.Print(card.Name, " ")
+	//}
+	//fmt.Println(player.Hands[0].Calculate())
+
+	bar := progressbar.Default(int64(cycles))
+	for i := 0; i < cycles; i++ {
+
+		// Check if shoe needs to be shuffled
+		if shoe.Index >= deckSize*shuffleAt {
+			shoe.Shuffle()
+		}
+
+		// Deal
+		house, player := deal(shoe)
+
+		// Check if house has blackjack
+		houseBlackjack := house.Calculate() == 21
+
+		for _, hand := range player.Hands {
+
+			playerBlackjack := hand.Calculate() == 21
+
+			if houseBlackjack {
+				if playerBlackjack {
+					continue
+				}
+				account -= baseBet
+			}
+
+			// Check for blackjack
+			if playerBlackjack {
+				account += int(float64(baseBet) * blackjackMultiplier)
+				continue
+			}
+
+		}
+
+		err := bar.Add(1)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	println(account)
+}
+
+// deal returns house hand model and player model
+func deal(shoe *models.Shoe) (models.Hand, models.Player) {
+
+	house := models.Hand{
+		Cards: []cards.Card{
+			shoe.NextCard(),
+			shoe.NextCard(),
+		},
+	}
+	player := models.Player{
+		Hands: []models.Hand{
+			{
+				Cards: []cards.Card{
+					shoe.NextCard(),
+					shoe.NextCard(),
+				},
+			},
+		},
+	}
+
+	house.UpCard = house.Cards[1]
+
+	return house, player
 }
