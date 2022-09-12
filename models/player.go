@@ -5,6 +5,7 @@ import "BlackjackSim/cards"
 type Hand struct {
 	Cards  []cards.Card
 	UpCard cards.Card // Dealer only
+	Soft   bool
 }
 
 func (h *Hand) Calculate() int {
@@ -21,8 +22,10 @@ func (h *Hand) Calculate() int {
 
 	// Aces calculation
 	totalValue += aces
+	h.Soft = false
 	if aces > 0 && totalValue+10 <= 21 {
 		totalValue += 10
+		h.Soft = true
 	}
 
 	return totalValue

@@ -58,7 +58,11 @@ func main() {
 		// Check if house has blackjack
 		houseBlackjack := house.Calculate() == 21
 
-		for _, hand := range player.Hands {
+		handCount := len(player.Hands)
+
+		// Play through player hands
+		for j := 0; j < handCount; j++ {
+			hand := player.Hands[j]
 
 			playerBlackjack := hand.Calculate() == 21
 
@@ -75,6 +79,17 @@ func main() {
 				continue
 			}
 
+			if hand.Cards[0] == hand.Cards[1] {
+				newHand := models.Hand{
+					Cards: []cards.Card{
+						hand.Cards[1],
+						shoe.NextCard(),
+					},
+				}
+
+				player.Hands = append(player.Hands, newHand)
+				handCount++
+			}
 		}
 
 		err := bar.Add(1)
