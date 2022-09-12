@@ -22,10 +22,6 @@ var account = 1000
 const blackjackMultiplier = 1.5
 const deckSize = 52
 
-/*
-Simulated Player
-*/
-
 /***********
 	Game
  **********/
@@ -79,6 +75,7 @@ func main() {
 				continue
 			}
 
+			// Split
 			if hand.Cards[0] == hand.Cards[1] {
 				newHand := models.Hand{
 					Cards: []cards.Card{
@@ -86,6 +83,8 @@ func main() {
 						shoe.NextCard(),
 					},
 				}
+
+				hand.Cards[1] = shoe.NextCard()
 
 				player.Hands = append(player.Hands, newHand)
 				handCount++
@@ -99,29 +98,4 @@ func main() {
 	}
 
 	println(account)
-}
-
-// deal returns house hand model and player model
-func deal(shoe *models.Shoe) (models.Hand, models.Player) {
-
-	house := models.Hand{
-		Cards: []cards.Card{
-			shoe.NextCard(),
-			shoe.NextCard(),
-		},
-	}
-	player := models.Player{
-		Hands: []models.Hand{
-			{
-				Cards: []cards.Card{
-					shoe.NextCard(),
-					shoe.NextCard(),
-				},
-			},
-		},
-	}
-
-	house.UpCard = house.Cards[1]
-
-	return house, player
 }
