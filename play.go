@@ -29,3 +29,7 @@ func deal(shoe *models.Shoe) (models.Hand, models.Player) {
 
 	return house, player
 }
+
+func playHand(house *models.Hand, playerHand *models.Hand, total, total2, splitting *map[int]map[int]string) {
+
+}
