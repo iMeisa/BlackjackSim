@@ -35,3 +35,7 @@ func (h *Hand) Calculate() int {
 type Player struct {
 	Hands []Hand
 }
+
+func (p *Player) AddHand(hand Hand) {
+	p.Hands = append(p.Hands, hand)
+}

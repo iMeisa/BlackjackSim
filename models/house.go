@@ -2,7 +2,6 @@ package models
 
 import (
 	"BlackjackSim/cards"
-	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -44,7 +43,7 @@ func (s *Shoe) Shuffle() {
 	rand.Shuffle(len(a), func(i, j int) { a[i], a[j] = a[j], a[i] })
 	s.Index = 0
 	s.updateRunningCount()
-	fmt.Println("Shuffling...")
+	//fmt.Println("Shuffling...")
 }
 
 func (s *Shoe) TrueCount() int {

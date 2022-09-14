@@ -32,7 +32,7 @@ func deal(shoe *models.Shoe, bet int) (models.Hand, models.Player) {
 	return house, player
 }
 
-func playHand(house, playerHand *models.Hand) int {
+func playHand(house, playerHand *models.Hand, player *models.Player) int {
 
 	// Check for blackjack already handled by main()
 
@@ -66,8 +66,7 @@ PlayerHand:
 			playerHand.Bet *= 2
 			hit(playerHand, shoe)
 		case strats.Split:
-			// TODO
-			break PlayerHand
+			player.AddHand(split(playerHand, shoe))
 		case strats.Stand:
 			break PlayerHand
 		}
@@ -102,4 +101,22 @@ HouseHand:
 
 func hit(hand *models.Hand, shoe *models.Shoe) {
 	hand.Cards = append(hand.Cards, shoe.NextCard())
+}
+
+func split(hand *models.Hand, shoe *models.Shoe) models.Hand {
+	newHand := models.Hand{
+		Bet: hand.Bet,
+		Cards: []cards.Card{
+			hand.Cards[1],
+		},
+	}
+
+	hand.Cards = []cards.Card{
+		hand.Cards[0],
+	}
+
+	hit(hand, shoe)
+	hit(&newHand, shoe)
+
+	return newHand
 }

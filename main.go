@@ -3,7 +3,6 @@ package main
 import (
 	"BlackjackSim/models"
 	"BlackjackSim/strats"
-	"fmt"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -12,7 +11,7 @@ import (
 // Config
 // Dev
 var debug = true
-var cycles = 1000
+var cycles = 100
 var baseBet = 5
 
 // Game
@@ -54,6 +53,9 @@ func main() {
 		// Play through player hands
 		for j := 0; j < handCount; j++ {
 			hand := player.Hands[j]
+			//if j > 0 {
+			//	fmt.Println("Split hand")
+			//}
 
 			playerBlackjack := hand.Calculate() == 21
 
@@ -71,16 +73,19 @@ func main() {
 			}
 
 			// Play hand
-			account += playHand(&house, &hand)
+			account += playHand(&house, &hand, &player)
 
-			for _, card := range house.Cards {
-				fmt.Print(" " + card.Name)
-			}
-			fmt.Print(",")
-			for _, card := range hand.Cards {
-				fmt.Print(" " + card.Name)
-			}
-			fmt.Printf(": %d %d\n", shoe.RunningCount, shoe.TrueCount())
+			// Update hand count
+			handCount = len(player.Hands)
+
+			//for _, card := range house.Cards {
+			//	fmt.Print(" " + card.Name)
+			//}
+			//fmt.Print(",")
+			//for _, card := range hand.Cards {
+			//	fmt.Print(" " + card.Name)
+			//}
+			//fmt.Printf(": %d %d\n", shoe.RunningCount, shoe.TrueCount())
 		}
 
 		err := bar.Add(1)
