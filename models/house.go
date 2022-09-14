@@ -28,6 +28,9 @@ func NewShoe(decks int) *Shoe {
 func (s *Shoe) NextCard() cards.Card {
 	card := s.Cards[s.Index]
 	s.Index++
+	if s.Index >= len(s.Cards) {
+		s.Shuffle()
+	}
 	return card
 }
 

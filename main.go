@@ -12,11 +12,11 @@ import (
 // Dev
 var debug = true
 var cycles = 1000
-var baseBet = 10
+var baseBet = 5
 
 // Game
-var deckCount = 6
-var shuffleAt = 5 // How many decks are played
+var deckCount = 1
+var shuffleAt = 0 // How many decks are played
 var account = 1000
 
 const blackjackMultiplier = 1.5
@@ -26,11 +26,17 @@ const deckSize = 52
 	Game
  **********/
 
+var (
+	hardTotal, softTotal, splitting = strats.Load()
+	shoe                            = models.NewShoe(deckCount)
+)
+
+var (
+	runningCount = 0
+	trueCount    = 0
+)
+
 func main() {
-
-	hardTotal, softTotal, splitting := strats.Load()
-
-	shoe := models.NewShoe(deckCount)
 
 	// Games
 	bar := progressbar.Default(int64(cycles))
@@ -42,7 +48,7 @@ func main() {
 		}
 
 		// Deal
-		house, player := deal(shoe)
+		house, player := deal(shoe, strats.GetBet(baseBet))
 
 		// Check if house has blackjack
 		houseBlackjack := house.Calculate() == 21
@@ -69,7 +75,7 @@ func main() {
 			}
 
 			// Play hand
-			playHand(&house, &hand, &hardTotal, &softTotal, &splitting)
+			account += playHand(&house, &hand)
 		}
 
 		err := bar.Add(1)

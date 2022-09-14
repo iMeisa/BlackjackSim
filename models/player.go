@@ -3,6 +3,7 @@ package models
 import "BlackjackSim/cards"
 
 type Hand struct {
+	Bet    int
 	Cards  []cards.Card
 	UpCard cards.Card // Dealer only
 	Soft   bool
