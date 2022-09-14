@@ -3,6 +3,7 @@ package main
 import (
 	"BlackjackSim/models"
 	"BlackjackSim/strats"
+	"fmt"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -15,8 +16,8 @@ var cycles = 1000
 var baseBet = 5
 
 // Game
-var deckCount = 1
-var shuffleAt = 0 // How many decks are played
+var deckCount = 6
+var shuffleAt = 5 // How many decks are played
 var account = 1000
 
 const blackjackMultiplier = 1.5
@@ -29,11 +30,6 @@ const deckSize = 52
 var (
 	hardTotal, softTotal, splitting = strats.Load()
 	shoe                            = models.NewShoe(deckCount)
-)
-
-var (
-	runningCount = 0
-	trueCount    = 0
 )
 
 func main() {
@@ -76,6 +72,15 @@ func main() {
 
 			// Play hand
 			account += playHand(&house, &hand)
+
+			for _, card := range house.Cards {
+				fmt.Print(" " + card.Name)
+			}
+			fmt.Print(",")
+			for _, card := range hand.Cards {
+				fmt.Print(" " + card.Name)
+			}
+			fmt.Printf(": %d %d\n", shoe.RunningCount, shoe.TrueCount())
 		}
 
 		err := bar.Add(1)

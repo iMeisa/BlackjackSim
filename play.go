@@ -55,6 +55,7 @@ PlayerHand:
 
 		// Check if player busted
 		if playerHand.Calculate() > 21 {
+			//updateRunningCount(house.Cards[0]) // Update running count for hidden card
 			return -playerHand.Bet
 		}
 
@@ -73,6 +74,7 @@ PlayerHand:
 	}
 
 	// Decide on house hand
+	//updateRunningCount(house.Cards[0]) // Update running count for hidden card
 HouseHand:
 	for {
 		switch strats.HouseDecision(house) {
