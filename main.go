@@ -11,13 +11,18 @@ import (
 // Config
 // Dev
 var debug = true
-var cycles = 100
-var baseBet = 5
+var cycles = 1000
+
+const baseBet = 25
+const minBet = 5
+const maxBet = 500
+
+const leaveCount = -3
 
 // Game
 var deckCount = 6
 var shuffleAt = 5 // How many decks are played
-var account = 1000
+var account = 100000
 
 const blackjackMultiplier = 1.5
 const deckSize = 52
@@ -43,7 +48,7 @@ func main() {
 		}
 
 		// Deal
-		house, player := deal(shoe, strats.GetBet(baseBet))
+		house, player := deal(shoe, strats.GetBet(minBet, maxBet, baseBet, shoe.TrueCount()))
 
 		// Check if house has blackjack
 		houseBlackjack := house.Calculate() == 21
@@ -53,9 +58,7 @@ func main() {
 		// Play through player hands
 		for j := 0; j < handCount; j++ {
 			hand := player.Hands[j]
-			//if j > 0 {
-			//	fmt.Println("Split hand")
-			//}
+			//fmt.Println(hand.Bet)
 
 			playerBlackjack := hand.Calculate() == 21
 
@@ -63,12 +66,12 @@ func main() {
 				if playerBlackjack {
 					continue
 				}
-				account -= baseBet
+				account -= hand.Bet
 			}
 
 			// Check for blackjack
 			if playerBlackjack {
-				account += int(float64(baseBet) * blackjackMultiplier)
+				account += int(float64(hand.Bet) * blackjackMultiplier)
 				continue
 			}
 
@@ -86,6 +89,11 @@ func main() {
 			//	fmt.Print(" " + card.Name)
 			//}
 			//fmt.Printf(": %d %d\n", shoe.RunningCount, shoe.TrueCount())
+		}
+
+		if shoe.TrueCount() <= leaveCount {
+			// Leave
+			shoe.Shuffle()
 		}
 
 		err := bar.Add(1)

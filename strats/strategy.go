@@ -5,6 +5,34 @@ import (
 	"BlackjackSim/models"
 )
 
+// GetBet returns the bet amount for each hand
+// Modify this for bet strategies
+func GetBet(minBet, maxBet, baseBet, trueCount int) int {
+
+	if trueCount < 1 {
+		return minBet
+	}
+
+	if trueCount > 1 {
+		return min(baseBet*(trueCount-1), maxBet)
+	}
+	return baseBet
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 func Decide(upCard cards.Card, playerHand *models.Hand, hardTotal, softTotal, splitting map[int]map[int]string) Decision {
 
 	// Check for blackjack already handled by main()
@@ -49,8 +77,4 @@ func sToD(s string) Decision {
 	default:
 		return Stand
 	}
-}
-
-func GetBet(baseBet int) int {
-	return baseBet
 }
